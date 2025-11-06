@@ -23,12 +23,12 @@ class CardPointCounter:
         self.white_upper = np.array([180, 30, 255])
 
         # White purity threshold - what % of pixels must be white
-        self.white_purity_threshold = 0.99  # Easy to change: 0.95 = 95%
+        self.white_purity_threshold = 0.95  # Easy to change: 0.95 = 95%
 
-    def is_white_dot(self, mask, contour):
+    def is_white_dot(self, hsv_image, contour):
         """Check if a contour is actually a white dot by checking pixel purity."""
         # Create a mask for just this contour
-        contour_mask = np.zeros_like(mask)
+        contour_mask = np.zeros(hsv_image.shape[:2], dtype=np.uint8)
         cv2.drawContours(contour_mask, [contour], -1, 255, -1)
 
         # Count pixels in the contour
@@ -36,8 +36,11 @@ class CardPointCounter:
         if total_pixels == 0:
             return False
 
+        # Check each pixel in the contour against white range
+        white_check_mask = cv2.inRange(hsv_image, self.white_lower, self.white_upper)
+
         # Count white pixels within the contour
-        white_pixels = cv2.countNonZero(cv2.bitwise_and(mask, contour_mask))
+        white_pixels = cv2.countNonZero(cv2.bitwise_and(white_check_mask, contour_mask))
 
         # Calculate purity
         purity = white_pixels / total_pixels
@@ -69,7 +72,7 @@ class CardPointCounter:
             area = cv2.contourArea(cnt)
             if area > 10:  # Adjust threshold as needed
                 # Check if it's actually a white dot
-                if self.is_white_dot(white_mask, cnt):
+                if self.is_white_dot(hsv, cnt):
                     M = cv2.moments(cnt)
                     if M["m00"] != 0:
                         cx = int(M["m10"] / M["m00"])
@@ -131,7 +134,7 @@ class CardPointCounter:
             area = cv2.contourArea(cnt)
             if area > 10:
                 # Check if it's actually a white dot
-                if self.is_white_dot(white_mask, cnt):
+                if self.is_white_dot(hsv, cnt):
                     M = cv2.moments(cnt)
                     if M["m00"] != 0:
                         cx = int(M["m10"] / M["m00"])
