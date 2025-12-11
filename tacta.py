@@ -90,10 +90,11 @@ def filter_circular_contours(
     min_intensity: float = 100.0,
     max_std_dev: float = 20.0,
     max_saturation: float = 80.0,
-    min_circularity: float = 0.4,
+    min_circularity: float = 0.73,
     min_area: float = 30.0,
     min_perimeter: float = 10.0,
-) -> list[NDArray]:
+    return_params: bool = False,
+) -> list[NDArray] | tuple[list[NDArray], dict[str, list[float]]]:
     """Filter contours to find circles with white/gray fill and low color saturation.
 
     Args:
@@ -108,13 +109,25 @@ def filter_circular_contours(
         min_circularity: Minimum circularity (1.0 is perfect circle)
         min_area: Minimum contour area
         min_perimeter: Minimum contour perimeter
+        return_params: If True, return parameters for each filtered contour
 
     Returns:
-        List of filtered contours matching criteria
+        If return_params is False: List of filtered contours matching criteria
+        If return_params is True: Tuple of (filtered_contours, params_dict) where params_dict contains
+            'diameter', 'circularity', 'mean_intensity', 'std_intensity', 'mean_saturation'
     """
     filtered_contours = []
     min_radius = min_diameter / 2
     max_radius = max_diameter / 2
+
+    # Storage for parameters if requested
+    params = {
+        "diameter": [],
+        "circularity": [],
+        "mean_intensity": [],
+        "std_intensity": [],
+        "mean_saturation": [],
+    }
 
     for contour in contours:
         # Calculate contour properties
@@ -159,6 +172,15 @@ def filter_circular_contours(
 
         filtered_contours.append(contour)
 
+        if return_params:
+            params["diameter"].append(radius * 2)
+            params["circularity"].append(circularity)
+            params["mean_intensity"].append(float(mean_intensity))
+            params["std_intensity"].append(float(std_intensity))
+            params["mean_saturation"].append(float(mean_saturation))
+
+    if return_params:
+        return filtered_contours, params
     return filtered_contours
 
 

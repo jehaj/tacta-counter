@@ -15,7 +15,7 @@ Computer vision system for automatically counting game points in Tacta by detect
 1. **Image loading** → `tacta.load_image()` returns RGB, grayscale, and HSV versions
 2. **Adaptive thresholding** → `tacta.apply_adaptive_threshold()` with Gaussian blur to detect edges
 3. **Contour detection** → `tacta.find_contours()` via `cv2.findContours`
-4. **Circle filtering** → `tacta.filter_circular_contours()` selects circles by diameter (8-18px), intensity, std deviation, and saturation
+4. **Circle filtering** → `tacta.filter_circular_contours()` selects circles by diameter (8-18px), intensity, std deviation, and saturation. Use `return_params=True` to get filtering metrics for analysis.
 5. **Donut region extraction** → `tacta.extract_donut_colors()` samples colors from ring around each circle (radius+2 to radius+6 pixels)
 6. **HSV to 3D Cartesian** → `tacta.convert_hsv_to_cartesian_array()` for visualization
 7. **K-means clustering** → Group detected colors into clusters (typically 6-7: one per game color + background)
@@ -105,6 +105,8 @@ Modify `reference_colors` dictionary with HSV tuples. Cluster assignment uses gr
 
 ### Debugging Circle Detection
 The notebook visualization cells show filtered contours overlaid on the darkened image. Check the count of detected circles and visually inspect if the green contours match the expected white dots.
+
+**Parameter analysis**: Use `return_params=True` in `tacta.filter_circular_contours()` to get a dictionary with 'diameter', 'circularity', 'mean_intensity', 'std_intensity', and 'mean_saturation' for all filtered circles. This helps visualize the actual distribution of detected circles and tune thresholds effectively.
 
 ## Git Workflow
 
